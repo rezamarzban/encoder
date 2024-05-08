@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checksum Decoder</title>
+</head>
+<body>
+<h2>Checksum Decoder</h2>
+<textarea id="checksums" rows="10" cols="50" placeholder="Enter checksums here..."></textarea><br>
+<button onclick="decodeChecksums()">Decode Checksums</button>
+<p id="decodedStrings"></p>
+
+<script>
+function calculateChecksum(string) {
+    return CryptoJS.SHA256(string).toString(CryptoJS.enc.Hex);
+}
+
+function generateStringsWithChecksum(targetChecksum, characters, stringLength) {
+    for (let candidate of generateCombinations(characters, stringLength)) {
+        const candidateStr = candidate.join('');
+        const checksum = calculateChecksum(candidateStr);
+        if (checksum === targetChecksum) {
+            return candidateStr;
+        }
+    }
+    return null;
+}
+
+function* generateCombinations(characters, stringLength) {
+    const charArray = characters.split('');
+    const combinations = [];
+    for (let combination of combinationsHelper(charArray, stringLength)) {
+        yield combination;
+    }
+}
+
+function* combinationsHelper(characters, stringLength, prefix = []) {
+    if (stringLength === 0) {
+        yield prefix;
+        return;
+    }
+    for (let char of characters) {
+        yield* combinationsHelper(characters, stringLength - 1, [...prefix, char]);
+    }
+}
+
+function decodeChecksums() {
+    const checksums = document.getElementById('checksums').value.trim().split('\n');
+    const characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_+=[]{}|;:,.<>?/~`" ';
+    const stringLength = 3;
+    let decodedStrings = '';
+
+    for (let checksum of checksums) {
+        const decodedString = generateStringsWithChecksum(checksum.trim(), characters, stringLength);
+        if (decodedString !== null) {
+            decodedStrings += decodedString;
+        }
+    }
+
+    document.getElementById('decodedStrings').textContent = decodedStrings;
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</body>
+</html>
